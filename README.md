@@ -1,8 +1,8 @@
 ---
 title: JaamCTRL — AI Adaptive Traffic Signal Control
-emoji: traffic-light
+emoji: 🚦
 colorFrom: indigo
-colorTo: cyan
+colorTo: blue
 sdk: docker
 pinned: true
 license: mit
