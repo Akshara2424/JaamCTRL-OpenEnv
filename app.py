@@ -1448,6 +1448,6 @@ st.markdown(
     f"font-family:'Bitcount Ink',system-ui;font-weight:400;letter-spacing:.06em'>"
     f"<span style='color:{YELLOW}'>JaamCTRL</span> &bull; "
     f"OpenEnv Hackathon 2026 &bull; "
-    f"<span style='color:{PINK}'>Team : BRAT</span></p>",
+    f"<span style='color:{PINK}'>Team : Cupcakes</span></p>",
     unsafe_allow_html=True,
 )
