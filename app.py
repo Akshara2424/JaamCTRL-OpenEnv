@@ -29,6 +29,33 @@ import streamlit as st
 import streamlit_folium
 
 # ══════════════════════════════════════════════════════════════════════════════
+# CACHING FOR HEATMAP RENDERING
+# ══════════════════════════════════════════════════════════════════════════════
+@st.cache_data
+def _cache_combined_heatmap(fixed_gps, adaptive_gps, rl_gps, _zoom=15):
+    """Cache combined heatmap map object."""
+    from src.heatmap import combined_heatmap_to_map
+    available = {}
+    if fixed_gps is not None and not fixed_gps.empty:
+        available["fixed"] = fixed_gps
+    if adaptive_gps is not None and not adaptive_gps.empty:
+        available["adaptive"] = adaptive_gps
+    if rl_gps is not None and not rl_gps.empty:
+        available["rl"] = rl_gps
+    
+    if available:
+        return combined_heatmap_to_map(available, zoom=_zoom)
+    return None
+
+@st.cache_data
+def _cache_single_heatmap(gps_df, title, _zoom=15):
+    """Cache single heatmap map object."""
+    from src.heatmap import heatmap_to_map
+    if gps_df is not None and not gps_df.empty:
+        return heatmap_to_map(gps_df, title=title, zoom=_zoom)
+    return None
+
+# ══════════════════════════════════════════════════════════════════════════════
 # HUGGING FACE SPACES DETECTION & SETUP
 # ══════════════════════════════════════════════════════════════════════════════
 # On HF Spaces, SUMO is not installed (requires apt). Force mock mode.
@@ -1237,15 +1264,24 @@ with tab_heat:
         "Toggle layers using the map control (top-right)."
     )
 
+    # Ensure session state is populated
+    fixed_res = st.session_state.get("fixed_result")
+    adaptive_res = st.session_state.get("adaptive_result")
+    rl_res = st.session_state.get("rl_result")
+    
+    # Show warning if no data available
+    if not any([fixed_res, adaptive_res, rl_res]):
+        st.warning("⚠️ No simulation data available. Run simulations on the **Dashboard** tab first.", icon="⚠️")
+    
     heat_mode = st.radio(
         "Display mode:",
         ["Combined (all modes)", "Fixed only", "Adaptive only", "RL Agent only"],
         horizontal=True,
     )
     res_map_heat = {
-        "fixed":    st.session_state.fixed_result,
-        "adaptive": st.session_state.adaptive_result,
-        "rl":       st.session_state.rl_result,
+        "fixed":    fixed_res,
+        "adaptive": adaptive_res,
+        "rl":       rl_res,
     }
 
     if heat_mode == "Combined (all modes)":
@@ -1260,8 +1296,16 @@ with tab_heat:
                         st.write(f"  Sample weight range: [{df['weight'].min():.3f}, {df['weight'].max():.3f}]")
             
             st.markdown("**Toggle layers** using the control panel on the map.")
-            m = combined_heatmap_to_map(available, zoom=15)
-            streamlit_folium.st_folium(m, width=1200, height=500)
+            # Use cached map generation
+            m = _cache_combined_heatmap(
+                fixed_res.gps_df if fixed_res else None,
+                adaptive_res.gps_df if adaptive_res else None,
+                rl_res.gps_df if rl_res else None,
+                _zoom=15
+            )
+            if m:
+                streamlit_folium.st_folium(m, width=1200, height=500)
+            
             st.markdown("#### Per-Junction Congestion Density")
             rows_d = []
             for mode_k, gps_df in available.items():
@@ -1288,24 +1332,28 @@ with tab_heat:
                     st.write(f"Lat range: [{sel_res.gps_df['lat'].min():.6f}, {sel_res.gps_df['lat'].max():.6f}]")
                     st.write(f"Lon range: [{sel_res.gps_df['lon'].min():.6f}, {sel_res.gps_df['lon'].max():.6f}]")
             
-            m = heatmap_to_map(sel_res.gps_df, title=f"{heat_mode} Traffic Heatmap", zoom=15)
-            streamlit_folium.st_folium(m, width=1200, height=500)
+            # Use cached map generation
+            m = _cache_single_heatmap(sel_res.gps_df, title=f"{mode_key} Traffic Heatmap", _zoom=15)
+            if m:
+                streamlit_folium.st_folium(m, width=1200, height=500)
         else:
             st.info(f"Run the **{heat_mode}** simulation on the Dashboard tab first.")
 
-    f_r = st.session_state.fixed_result
-    r_r = st.session_state.rl_result
+    f_r = fixed_res
+    r_r = rl_res
     if f_r and r_r and not f_r.gps_df.empty and not r_r.gps_df.empty:
         st.markdown("### Side-by-Side: Fixed-Time vs RL Agent")
         hc1, hc2 = st.columns(2)
         with hc1:
             st.markdown("**Fixed-Time (Baseline)**")
-            m1 = heatmap_to_map(f_r.gps_df, "Fixed-Time", zoom=14)
-            streamlit_folium.st_folium(m1, width=550, height=380)
+            m1 = _cache_single_heatmap(f_r.gps_df, "Fixed-Time", _zoom=14)
+            if m1:
+                streamlit_folium.st_folium(m1, width=550, height=380)
         with hc2:
             st.markdown("**RL Agent (PPO)**")
-            m2 = heatmap_to_map(r_r.gps_df, "RL Agent", zoom=14)
-            streamlit_folium.st_folium(m2, width=550, height=380)
+            m2 = _cache_single_heatmap(r_r.gps_df, "RL Agent", _zoom=14)
+            if m2:
+                streamlit_folium.st_folium(m2, width=550, height=380)
         dr = delay_reduction_pct(f_r.gps_df, r_r.gps_df)
         if dr > 0:
             st.success(f"RL Agent shows approx **{dr:.1f}%** lower congestion density "
