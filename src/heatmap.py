@@ -120,44 +120,53 @@ def _heat_layer(
     gps_df: pd.DataFrame,
     name: str,
     gradient: dict,
-) -> HeatMap:
-    """Build a HeatMap layer from a GPS DataFrame."""
-    if gps_df.empty:
-        data = []
-    else:
+) -> folium.FeatureGroup:
+    """Build a HeatMap layer from a GPS DataFrame wrapped in a FeatureGroup."""
+    fg = folium.FeatureGroup(name=f"{name} (heat)", show=True)
+    
+    if not gps_df.empty:
         data = gps_df[["lat", "lon", "weight"]].dropna().values.tolist()
-    return HeatMap(
-        data,
-        name=name,
-        min_opacity=0.35,
-        max_zoom=18,
-        radius=18,
-        blur=22,
-        gradient=gradient,
-    )
+        HeatMap(
+            data,
+            name="",  # Empty name since FeatureGroup has the name
+            min_opacity=0.35,
+            max_zoom=18,
+            radius=20,
+            blur=25,
+            gradient=gradient,
+        ).add_to(fg)
+    
+    return fg
 
 
 def _add_markers_layer(m: folium.Map, gps_df: pd.DataFrame, name: str, color_func) -> None:
-    """Add markers layer as fallback if heatmap doesn't render."""
+    """Add markers layer as fallback if heatmap doesn't render properly."""
     if gps_df.empty:
         return
     
-    # Sample data if too many points
-    if len(gps_df) > 200:
-        gps_df = gps_df.sample(200, random_state=42)
+    # Create a FeatureGroup for the markers
+    fg = folium.FeatureGroup(name=f"{name} (markers)", show=True)
     
-    for idx, row in gps_df.iterrows():
+    # Sample data if too many points
+    sample_df = gps_df
+    if len(gps_df) > 200:
+        sample_df = gps_df.sample(200, random_state=42)
+    
+    for idx, row in sample_df.iterrows():
         weight = row.get("weight", 0.5)
         color = color_func(weight)
         folium.CircleMarker(
             location=[row["lat"], row["lon"]],
-            radius=3 + 5 * weight,
+            radius=2 + 4 * weight,  # Radius ranges from 2 to 6
             color=color,
             fill=True,
             fill_color=color,
-            fill_opacity=0.6,
-            weight=1,
-        ).add_to(m)
+            fill_opacity=0.65,
+            weight=0.5,
+            popup=folium.Popup(f"Weight: {weight:.2f}", max_width=100),
+        ).add_to(fg)
+    
+    fg.add_to(m)
 
 
 # ---------------------------------------------------------------------------
@@ -224,12 +233,11 @@ def heatmap_to_map(
     m = _base_map(zoom)
     gradient = _GRADIENTS.get(mode, _GRADIENTS["default"])
     
-    # Add heatmap layer
+    # Add heatmap layer (now returns FeatureGroup)
     if not gps_df.empty:
-        heat_layer = _heat_layer(gps_df, title, gradient)
-        heat_layer.add_to(m)
+        _heat_layer(gps_df, title, gradient).add_to(m)
         
-        # Add markers as fallback visualization
+        # Add markers as fallback/complementary visualization
         def color_func(weight):
             """Map weight [0,1] to gradient color."""
             if weight < 0.2:
@@ -285,8 +293,12 @@ def combined_heatmap_to_map(
     zoom: int = 15,
 ) -> folium.Map:
     """
-    Build a multi-layer heatmap map object for Streamlit.
-    Use this with streamlit_folium.st_folium() for proper rendering.
+    Build a multi-layer heatmap (overlay multiple modes) and return folium Map object.
+    Use this with streamlit_folium.st_folium() for proper Streamlit integration.
+    
+    Args:
+        mode_dfs: Dictionary mapping mode names to gps_dfs
+                 e.g., {"fixed": gps_df1, "rl": gps_df2}
     """
     m = _base_map(zoom)
 
@@ -302,10 +314,10 @@ def combined_heatmap_to_map(
         gradient = _GRADIENTS.get(mode_key, _GRADIENTS["default"])
         label    = layer_labels.get(mode_key, mode_key.capitalize())
         
-        # Add heatmap layer
+        # Add heatmap layer (now returns FeatureGroup)
         _heat_layer(gps_df, label, gradient).add_to(m)
         
-        # Add markers as fallback visualization
+        # Add markers as fallback/complementary visualization
         def color_func(weight):
             """Map weight [0,1] to gradient color."""
             if weight < 0.2:
