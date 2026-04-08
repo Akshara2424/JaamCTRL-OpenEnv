@@ -137,6 +137,29 @@ def _heat_layer(
     )
 
 
+def _add_markers_layer(m: folium.Map, gps_df: pd.DataFrame, name: str, color_func) -> None:
+    """Add markers layer as fallback if heatmap doesn't render."""
+    if gps_df.empty:
+        return
+    
+    # Sample data if too many points
+    if len(gps_df) > 200:
+        gps_df = gps_df.sample(200, random_state=42)
+    
+    for idx, row in gps_df.iterrows():
+        weight = row.get("weight", 0.5)
+        color = color_func(weight)
+        folium.CircleMarker(
+            location=[row["lat"], row["lon"]],
+            radius=3 + 5 * weight,
+            color=color,
+            fill=True,
+            fill_color=color,
+            fill_opacity=0.6,
+            weight=1,
+        ).add_to(m)
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -200,7 +223,26 @@ def heatmap_to_map(
     
     m = _base_map(zoom)
     gradient = _GRADIENTS.get(mode, _GRADIENTS["default"])
-    _heat_layer(gps_df, title, gradient).add_to(m)
+    
+    # Add heatmap layer
+    if not gps_df.empty:
+        heat_layer = _heat_layer(gps_df, title, gradient)
+        heat_layer.add_to(m)
+        
+        # Add markers as fallback visualization
+        def color_func(weight):
+            """Map weight [0,1] to gradient color."""
+            if weight < 0.2:
+                return gradient.get(0.2, "#001a33")
+            elif weight < 0.5:
+                return gradient.get(0.5, "#7C4DFF")
+            elif weight < 0.8:
+                return gradient.get(0.8, "#00E5FF")
+            else:
+                return gradient.get(1.0, "#FF2FD6")
+        
+        _add_markers_layer(m, gps_df, title, color_func)
+    
     _add_junction_markers(m)
     folium.LayerControl(position="topright", collapsed=False).add_to(m)
     return m
@@ -259,7 +301,23 @@ def combined_heatmap_to_map(
             continue
         gradient = _GRADIENTS.get(mode_key, _GRADIENTS["default"])
         label    = layer_labels.get(mode_key, mode_key.capitalize())
+        
+        # Add heatmap layer
         _heat_layer(gps_df, label, gradient).add_to(m)
+        
+        # Add markers as fallback visualization
+        def color_func(weight):
+            """Map weight [0,1] to gradient color."""
+            if weight < 0.2:
+                return gradient.get(0.2, "#001a33")
+            elif weight < 0.5:
+                return gradient.get(0.5, "#7C4DFF")
+            elif weight < 0.8:
+                return gradient.get(0.8, "#00E5FF")
+            else:
+                return gradient.get(1.0, "#FF2FD6")
+        
+        _add_markers_layer(m, gps_df, label, color_func)
 
     _add_junction_markers(m)
     folium.LayerControl(position="topright", collapsed=False).add_to(m)
