@@ -772,7 +772,11 @@ logo_html = (
 
 # ── Header HTML ────────────────────────────────────────────────────────────
 
-st.image("assets/header.png")
+try:
+    if os.path.exists("assets/header.png"):
+        st.image("assets/header.png")
+except Exception:
+    st.markdown("<h2 style='text-align:center; color:#f7f43c;'>JaamCTRL 🚦</h2>", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -842,7 +846,13 @@ with tab_about:
     #--------------------Third Division: Poster----------------------
     # Poster placeholder
     st.markdown("""<div style='margin-top:32px;margin-bottom:0px'><h3 style="margin-top: 20px;">In a nutshell</h3></div>""", unsafe_allow_html=True)
-    st.image("assets/poster.png", caption="Project poster with detailed architecture and results overview.")
+    try:
+        if os.path.exists("assets/poster.png"):
+            st.image("assets/poster.png", caption="Project poster with detailed architecture and results overview.")
+        else:
+            st.info("📊 Architecture overview visualization not available in this environment.")
+    except Exception:
+        st.info("📊 Architecture overview visualization not available in this environment.")
 
     # ── Getting Started ────────────────────────────────────────────────────
 st.markdown(f"""
