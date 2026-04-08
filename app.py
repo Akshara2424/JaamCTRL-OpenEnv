@@ -1251,7 +1251,7 @@ with tab_heat:
                      if v is not None and not v.gps_df.empty}
         if available:
             st.markdown("**Toggle layers** using the control panel on the map.")
-            st.components.v1.html(combined_heatmap_to_html(available, zoom=15),
+            st.components.html(combined_heatmap_to_html(available, zoom=15),
                                   height=560, scrolling=False)
             st.markdown("#### Per-Junction Congestion Density")
             rows_d = []
@@ -1270,7 +1270,7 @@ with tab_heat:
         mode_key = {"Fixed only":"fixed","Adaptive only":"adaptive","RL Agent only":"rl"}[heat_mode]
         sel_res  = res_map_heat.get(mode_key)
         if sel_res and not sel_res.gps_df.empty:
-            st.components.v1.html(
+            st.components.html(
                 heatmap_to_html(sel_res.gps_df, title=f"{heat_mode} Traffic Heatmap", zoom=15),
                 height=520, scrolling=False,
             )
@@ -1284,10 +1284,10 @@ with tab_heat:
         hc1, hc2 = st.columns(2)
         with hc1:
             st.markdown("**Fixed-Time (Baseline)**")
-            st.components.v1.html(heatmap_to_html(f_r.gps_df,"Fixed-Time",zoom=14), height=380)
+            st.components.html(heatmap_to_html(f_r.gps_df,"Fixed-Time",zoom=14), height=380)
         with hc2:
             st.markdown("**RL Agent (PPO)**")
-            st.components.v1.html(heatmap_to_html(r_r.gps_df,"RL Agent",zoom=14), height=380)
+            st.components.html(heatmap_to_html(r_r.gps_df,"RL Agent",zoom=14), height=380)
         dr = delay_reduction_pct(f_r.gps_df, r_r.gps_df)
         if dr > 0:
             st.success(f"RL Agent shows approx **{dr:.1f}%** lower congestion density "
