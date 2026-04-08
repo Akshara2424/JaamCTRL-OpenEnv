@@ -1252,6 +1252,13 @@ with tab_heat:
         available = {k: v.gps_df for k, v in res_map_heat.items()
                      if v is not None and not v.gps_df.empty}
         if available:
+            # Debug: Show what data is available
+            with st.expander("Debug: Available Data", expanded=False):
+                for mode, df in available.items():
+                    st.write(f"**{mode}**: {len(df)} points, columns: {list(df.columns)}")
+                    if not df.empty:
+                        st.write(f"  Sample weight range: [{df['weight'].min():.3f}, {df['weight'].max():.3f}]")
+            
             st.markdown("**Toggle layers** using the control panel on the map.")
             m = combined_heatmap_to_map(available, zoom=15)
             streamlit_folium.st_folium(m, width=1200, height=500)
@@ -1272,6 +1279,15 @@ with tab_heat:
         mode_key = {"Fixed only":"fixed","Adaptive only":"adaptive","RL Agent only":"rl"}[heat_mode]
         sel_res  = res_map_heat.get(mode_key)
         if sel_res and not sel_res.gps_df.empty:
+            # Debug: Show what data is being used
+            with st.expander("Debug: GPS Data", expanded=False):
+                st.write(f"**{mode_key}**: {len(sel_res.gps_df)} points")
+                st.write(f"Columns: {list(sel_res.gps_df.columns)}")
+                if not sel_res.gps_df.empty:
+                    st.write(f"Weight range: [{sel_res.gps_df['weight'].min():.3f}, {sel_res.gps_df['weight'].max():.3f}]")
+                    st.write(f"Lat range: [{sel_res.gps_df['lat'].min():.6f}, {sel_res.gps_df['lat'].max():.6f}]")
+                    st.write(f"Lon range: [{sel_res.gps_df['lon'].min():.6f}, {sel_res.gps_df['lon'].max():.6f}]")
+            
             m = heatmap_to_map(sel_res.gps_df, title=f"{heat_mode} Traffic Heatmap", zoom=15)
             streamlit_folium.st_folium(m, width=1200, height=500)
         else:
