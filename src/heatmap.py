@@ -129,10 +129,10 @@ def _heat_layer(
         HeatMap(
             data,
             name="",  # Empty name since FeatureGroup has the name
-            min_opacity=0.35,
+            min_opacity=0.4,     # Increased from 0.35 for better visibility
             max_zoom=18,
-            radius=20,
-            blur=25,
+            radius=25,           # Increased from 20 for larger heatmap blobs
+            blur=18,             # Reduced from 25 for clearer definition
             gradient=gradient,
         ).add_to(fg)
     
