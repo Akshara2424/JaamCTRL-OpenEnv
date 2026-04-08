@@ -598,7 +598,7 @@ def line_chart(df: pd.DataFrame, colours: list[str] | None = None,
                         legend=alt.Legend(orient="bottom", direction="horizontal")),
         tooltip=[x_col, "Series", "Value"],
     ).properties(height=height)
-    st.altair_chart(_styled(chart), width='stretch')
+    st.altair_chart(_styled(chart), use_container_width=True)
 
 
 def bar_chart(df: pd.DataFrame, colours: list[str] | None = None,
@@ -618,7 +618,7 @@ def bar_chart(df: pd.DataFrame, colours: list[str] | None = None,
         xOffset="Series:N",
         tooltip=[cat_col, "Series", "Value"],
     ).properties(height=height)
-    st.altair_chart(_styled(chart), width='stretch')
+    st.altair_chart(_styled(chart), use_container_width=True)
 
 
 def area_chart(df: pd.DataFrame, colours: list[str] | None = None,
@@ -1263,7 +1263,7 @@ with tab_heat:
                                 "J1 Density": d.get("J1",0.0),
                                 "J2 Density": d.get("J2",0.0),
                                 "Flow Balance": fb})
-            st.dataframe(pd.DataFrame(rows_d), width='stretch', hide_index=True)
+            st.dataframe(pd.DataFrame(rows_d), use_container_width=True, hide_index=True)
         else:
             st.info("Run at least one simulation to see the combined heatmap.")
     else:
