@@ -31,3 +31,4 @@ pyyaml>=6.0.0
 # ── Utilities ─────────────────────────────────────────────────────────────────
 requests>=2.31.0             # used by HF hub calls in inference.py if needed
 tqdm>=4.66.0                 # progress bars in training scripts
+flask>=2.3.0                 # HTTP API wrapper for OpenEnv submission checker

@@ -83,17 +83,21 @@ ENV PYTHONPATH=/app
 
 # ── Port ─────────────────────────────────────────────────────────────────────
 # HF Spaces Docker must expose 7860
-EXPOSE 7860
+# OpenEnv API uses 5000 (redirected to 7860 by HF Spaces)
+EXPOSE 7860 5000
 
 # ── Health check ─────────────────────────────────────────────────────────────
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:7860/_stcore/health || exit 1
+    CMD curl -f http://localhost:7860/_stcore/health || curl -f http://localhost:5000/health || exit 1
 
 # ── Startup ───────────────────────────────────────────────────────────────────
 # Default: Streamlit dashboard on port 7860
-# Override with: docker run -e INFERENCE_MODE=1 jaamctrl
+# INFERENCE_MODE=1: Run inference.py inference pipeline
+# OPENENV_API=1: Run OpenEnv HTTP API server on port 5000 (for submission checker)
 CMD ["sh", "-c", \
-    "if [ \"$INFERENCE_MODE\" = '1' ]; then \
+    "if [ \"$OPENENV_API\" = '1' ]; then \
+        python openenv_api.py --port 7860; \
+     elif [ \"$INFERENCE_MODE\" = '1' ]; then \
         python inference.py --mock; \
      else \
         streamlit run app.py \
