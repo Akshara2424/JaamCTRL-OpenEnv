@@ -639,7 +639,7 @@ def area_chart(df: pd.DataFrame, colours: list[str] | None = None,
         _styled((base.mark_area(opacity=opacity, interpolate="monotone") +
                  base.mark_line(strokeWidth=2.5, interpolate="monotone")
                 ).properties(height=height)),
-        width='stretch',
+        use_container_width=True,
     )
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1192,7 +1192,7 @@ with tab_sig:
         if sv_res.signal_events:
             with st.expander("Phase Switch Log (first 50 events)"):
                 st.dataframe(pd.DataFrame(sv_res.signal_events[:50]),
-                             width='stretch', hide_index=True)
+                             use_container_width=True, hide_index=True)
     else:
         st.info(f"Run **{sv_mode}** on the Dashboard tab to see signal data.")
 
@@ -1434,7 +1434,7 @@ with tab_ctrl:
         "Delay Reduction": ["—", "~31%", "~53%"],
         "Flow Balance":    [0.45, 0.28, 0.14],
         "Coordination":    ["None", "Green-wave + queue", "Joint 18-dim PPO"],
-    }), width='stretch', hide_index=True)
+    }), use_container_width=True, hide_index=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
