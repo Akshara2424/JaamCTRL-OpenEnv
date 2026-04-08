@@ -177,6 +177,35 @@ def heatmap_to_html(
     return m._repr_html_()
 
 
+def heatmap_to_map(
+    gps_df: pd.DataFrame,
+    title: str = "Traffic Heatmap",
+    zoom: int = 15,
+    mode: str | None = None,
+) -> folium.Map:
+    """
+    Build a single-mode heatmap and return the folium Map object.
+    Use this with streamlit_folium.st_folium() for proper Streamlit integration.
+    """
+    if mode is None:
+        title_lower = title.lower()
+        if "fixed" in title_lower:
+            mode = "fixed"
+        elif "adaptive" in title_lower:
+            mode = "adaptive"
+        elif "rl" in title_lower or "ppo" in title_lower:
+            mode = "rl"
+        else:
+            mode = "default"
+    
+    m = _base_map(zoom)
+    gradient = _GRADIENTS.get(mode, _GRADIENTS["default"])
+    _heat_layer(gps_df, title, gradient).add_to(m)
+    _add_junction_markers(m)
+    folium.LayerControl(position="topright", collapsed=False).add_to(m)
+    return m
+
+
 def combined_heatmap_to_html(
     mode_dfs: dict[str, pd.DataFrame],
     zoom: int = 15,
@@ -207,6 +236,34 @@ def combined_heatmap_to_html(
     _add_junction_markers(m)
     folium.LayerControl(position="topright", collapsed=False).add_to(m)
     return m._repr_html_()
+
+
+def combined_heatmap_to_map(
+    mode_dfs: dict[str, pd.DataFrame],
+    zoom: int = 15,
+) -> folium.Map:
+    """
+    Build a multi-layer heatmap map object for Streamlit.
+    Use this with streamlit_folium.st_folium() for proper rendering.
+    """
+    m = _base_map(zoom)
+
+    layer_labels = {
+        "fixed":    "Fixed-Time (baseline)",
+        "adaptive": "Rule-Based Adaptive",
+        "rl":       "PPO RL Agent",
+    }
+
+    for mode_key, gps_df in mode_dfs.items():
+        if gps_df is None or gps_df.empty:
+            continue
+        gradient = _GRADIENTS.get(mode_key, _GRADIENTS["default"])
+        label    = layer_labels.get(mode_key, mode_key.capitalize())
+        _heat_layer(gps_df, label, gradient).add_to(m)
+
+    _add_junction_markers(m)
+    folium.LayerControl(position="topright", collapsed=False).add_to(m)
+    return m
 
 
 def per_junction_density(gps_df: pd.DataFrame) -> dict[str, float]:
