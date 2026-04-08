@@ -231,16 +231,32 @@ def train_ppo(
 def load_ppo_model():
     """
     Load the saved PPO model from disk.
+    Attempts to download from GitHub if not found locally.
     Returns the model object or None if not found / SB3 not available.
     """
     if not SB3_AVAILABLE:
         return None
+    
     path = MODEL_PATH + ".zip"
-    if not os.path.exists(path):
-        return None
+    
+    # Try to load locally first
+    if os.path.exists(path):
+        try:
+            return PPO.load(MODEL_PATH)
+        except Exception:
+            pass
+    
+    # If not local, try downloading from GitHub release
     try:
+        import urllib.request
+        _ensure_models_dir()
+        url = "https://github.com/Akshara2424/JaamCTRL-OpenEnv/releases/download/v1.0.0/ppo_jaam_ctrl.zip"
+        print(f"[INFO] Downloading PPO model from {url}...")
+        urllib.request.urlretrieve(url, path)
+        print(f"[INFO] Downloaded to {path}")
         return PPO.load(MODEL_PATH)
-    except Exception:
+    except Exception as e:
+        print(f"[WARN] Could not download model: {e}")
         return None
 
 
