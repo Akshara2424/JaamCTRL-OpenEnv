@@ -152,6 +152,18 @@ class JaamCTRLTrafficEnv(gym.Env):
 
     # ── Gymnasium API ─────────────────────────────────────────────────────────
 
+    def _to_serializable(self, obj: Any) -> Any:
+        """Convert numpy arrays and other non-JSON types to native Python types."""
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, (np.integer, np.floating)):
+            return obj.item()
+        elif isinstance(obj, dict):
+            return {k: self._to_serializable(v) for k, v in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [self._to_serializable(v) for v in obj]
+        return obj
+
     def reset(
         self,
         *,
@@ -225,7 +237,7 @@ class JaamCTRLTrafficEnv(gym.Env):
         )
         info = self._build_info(reward=0.0, terminated=False, truncated=False)
         info["reset"] = True
-        return obs, info
+        return self._to_serializable(obs), self._to_serializable(info)
 
     def step(
         self,
@@ -341,14 +353,14 @@ class JaamCTRLTrafficEnv(gym.Env):
         if truncated or terminated:
             info["episode_summary"] = self._build_episode_summary()
 
-        return obs, reward, terminated, truncated, info
+        return self._to_serializable(obs), reward, terminated, truncated, self._to_serializable(info)
 
     def state(self) -> Dict[str, Any]:
         """
         Return a fully JSON-serialisable snapshot of current env state.
         Called by the OpenEnv grader after each episode.
         """
-        return {
+        state_dict = {
             "task_id":              self.task_id,
             "task_name":            self.cfg["name"],
             "step":                 int(self._step_count),
@@ -363,6 +375,7 @@ class JaamCTRLTrafficEnv(gym.Env):
             "incident_cleared":     bool(self._incident_mgr.incident_cleared),
             "success_thresholds":   self.cfg["success_thresholds"],
         }
+        return self._to_serializable(state_dict)
 
     def render(self, mode: str = "none") -> None:
         """SUMO-GUI handles rendering; this is a no-op for headless mode."""
