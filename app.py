@@ -933,7 +933,7 @@ with tab_dash:
         st.markdown(_badge("Baseline", "red"), unsafe_allow_html=True)
         st.markdown("**Fixed-Time**")
         st.caption("35s/30s fixed cycle, no coordination")
-        if st.button("Run Fixed", width='stretch'):
+        if st.button("Run Fixed"):
             with st.spinner("Running..."):
                 p = st.empty()
                 st.session_state.fixed_result = _run_sim("fixed", p)
@@ -943,7 +943,7 @@ with tab_dash:
         st.markdown(_badge("Rule-Based AI", "yellow"), unsafe_allow_html=True)
         st.markdown("**Adaptive Control**")
         st.caption("Queue-aware + green-wave across J0→J1→J2")
-        if st.button("Run Adaptive", width='stretch'):
+        if st.button("Run Adaptive"):
             with st.spinner("Running..."):
                 p = st.empty()
                 st.session_state.adaptive_result = _run_sim("adaptive", p)
@@ -954,7 +954,7 @@ with tab_dash:
         st.markdown("**RL Agent**")
         st.caption("PPO jointly controls all 3 signals (18-dim obs)")
         rl_off = not (model_exists or st.session_state.training_done)
-        if st.button("Run RL Agent", width='stretch', disabled=rl_off):
+        if st.button("Run RL Agent", disabled=rl_off):
             with st.spinner("Running..."):
                 if st.session_state.ppo_model is None and RL_OK:
                     st.session_state.ppo_model = load_ppo_model()
@@ -1339,7 +1339,7 @@ Action (3-bit binary → Discrete 8)
             ts = st.select_slider("Timesteps", [1000, 2000, 3000, 5000], 3000)
             lr = st.select_slider("Learning Rate", [1e-4, 3e-4, 1e-3], 3e-4,
                                   format_func=lambda x: f"{x:.0e}")
-            if st.button("Train PPO Agent", width='stretch', type="primary"):
+            if st.button("Train PPO Agent", type="primary"):
                 pbar = st.progress(0, text="Initialising...")
                 def _cb(s, t): pbar.progress(min(s/t,1.0), text=f"Training {s}/{t}")
                 try:
