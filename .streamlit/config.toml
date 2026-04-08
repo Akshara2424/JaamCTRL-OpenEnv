@@ -1,0 +1,18 @@
+[theme]
+base = "dark"
+primaryColor = "#00E5FF"
+backgroundColor = "#0A0F1E"
+secondaryBackgroundColor = "#131A2E"
+textColor = "#C9D1D9"
+
+[client]
+showErrorDetails = true
+toolbarMode = "viewer"
+
+[logger]
+level = "info"
+
+[server]
+maxUploadSize = 200
+enableXsrfProtection = true
+headless = true

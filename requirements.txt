@@ -1,0 +1,33 @@
+# requirements.txt — JaamCTRL
+# Pin minor versions for reproducibility; allow patch updates.
+# Compatible with Python 3.11 and HuggingFace Spaces Docker tier.
+
+# ── Core RL stack ─────────────────────────────────────────────────────────────
+gymnasium==0.29.1
+numpy>=1.24.0,<2.0.0
+stable-baselines3==2.3.2
+torch>=2.1.0,<3.0.0          # CPU-only build is fine; no GPU needed for inference
+
+# ── SUMO Python bindings ──────────────────────────────────────────────────────
+# NOTE: On Hugging Face Spaces, SUMO is NOT installed (requires system-level apt install).
+# The app runs in MOCK_SUMO mode and uses synthetic observations instead of real TraCI.
+# If running locally WITH SUMO installed, uncomment these:
+# traci>=1.19.0
+# sumolib>=1.19.0
+
+# ── Dashboard ─────────────────────────────────────────────────────────────────
+streamlit==1.35.0
+streamlit-folium==0.20.0
+folium==0.16.0
+altair>=5.0.0                # Streamlit chart backend
+
+# ── Data & OpenEnv Specification ─────────────────────────────────────────────
+pandas>=2.0.0,<3.0.0
+pydantic>=2.0.0,<3.0.0       # Type validation for OpenEnv models
+
+# ── YAML (openenv.yaml parsing) ───────────────────────────────────────────────
+pyyaml>=6.0.0
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+requests>=2.31.0             # used by HF hub calls in inference.py if needed
+tqdm>=4.66.0                 # progress bars in training scripts

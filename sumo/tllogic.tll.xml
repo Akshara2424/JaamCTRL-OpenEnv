@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tlLogics version="1.26" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/tllogic_file.xsd">
+  <tlLogic id="TL0" type="static" programID="coordinated" offset="0">
+    <phase duration="35" state="GGggGGggrrrr" name="EW_green"/>
+    <phase duration="5" state="yyyyyyyyrrrr" name="EW_yellow"/>
+    <phase duration="30" state="rrrrrrrrGGGG" name="NS_green"/>
+    <phase duration="5" state="rrrrrrrryyyy" name="NS_yellow"/>
+  </tlLogic>
+  <tlLogic id="TL1" type="static" programID="coordinated" offset="36">
+    <phase duration="35" state="GGggGGggrrrr" name="EW_green"/>
+    <phase duration="5" state="yyyyyyyyrrrr" name="EW_yellow"/>
+    <phase duration="30" state="rrrrrrrrGGGG" name="NS_green"/>
+    <phase duration="5" state="rrrrrrrryyyy" name="NS_yellow"/>
+  </tlLogic>
+  <tlLogic id="TL2" type="static" programID="coordinated" offset="72">
+    <phase duration="35" state="GGggrrrr" name="EW_green"/>
+    <phase duration="5" state="yyyyrrrr" name="EW_yellow"/>
+    <phase duration="30" state="rrrrGGGG" name="NS_green"/>
+    <phase duration="5" state="rrrryyyy" name="NS_yellow"/>
+  </tlLogic>
+</tlLogics>

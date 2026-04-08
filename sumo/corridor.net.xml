@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  corridor.net.xml
+  ----------------
+  3-intersection linear arterial corridor modelled on Connaught Place,
+  New Delhi.  Projected offset is set so that SUMO world coordinates map
+  approximately to the real UTM zone 43N position of CP.
+
+  Intersections (junction IDs):
+    J1  →  Barakhamba Rd × KG Marg      (28.6328 N, 77.2195 E)
+    J2  →  Connaught Place core          (28.6315 N, 77.2167 E)
+    J3  →  Patel Chowk junction          (28.6287 N, 77.2140 E)
+
+  Network offset chosen so x=0,y=0 in SUMO ≈ J2 (CP core).
+  Rough scale: 1 SUMO unit ≈ 1 metre.
+-->
+<net version="1.16"
+     junctionCornerDetail="5"
+     limitTurnSpeed="5.50"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <!-- ── Projection ── -->
+    <location netOffset="-2870.00,-3170.00"
+              convBoundary="-250.00,-300.00,850.00,300.00"
+              origBoundary="77.2100,28.6270,77.2240,28.6360"
+              projParameter="+proj=utm +zone=43 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
+
+    <!-- ══════════════════════════════════════════════════
+         EDGE TYPES
+    ══════════════════════════════════════════════════ -->
+    <type id="arterial"     priority="9" numLanes="3" speed="13.89" allow="all"/>
+    <type id="collector"    priority="7" numLanes="2" speed="8.33"  allow="all"/>
+
+    <!-- ══════════════════════════════════════════════════
+         NODES  (x,y in SUMO metres; approx. UTM-43N offset)
+    ══════════════════════════════════════════════════ -->
+
+    <!-- Approach nodes for J1 (Barakhamba) -->
+    <junction id="J1_N_src"  x="300.0"  y="400.0"  type="dead_end"/>
+    <junction id="J1_S_src"  x="300.0"  y="-400.0" type="dead_end"/>
+    <junction id="J1_W_src"  x="-250.0" y="0.0"    type="dead_end"/>
+    <junction id="J1_E_src"  x="850.0"  y="0.0"    type="dead_end"/>
+
+    <!-- Intersection J1 -->
+    <junction id="J1" x="300.0" y="0.0" type="traffic_light"
+              tl="TL1" tlType="static" tlLayout="opposites"
+              incLanes="e_J1N_J1_0 e_J1N_J1_1 e_J1N_J1_2
+                        e_J1S_J1_0 e_J1S_J1_1 e_J1S_J1_2
+                        e_J1W_J1_0 e_J1W_J1_1 e_J1W_J1_2
+                        e_J1E_J1_0 e_J1E_J1_1 e_J1E_J1_2"/>
+
+    <!-- Approach nodes for J2 (CP core) -->
+    <junction id="J2_N_src"  x="0.0"    y="400.0"  type="dead_end"/>
+    <junction id="J2_S_src"  x="0.0"    y="-400.0" type="dead_end"/>
+
+    <!-- Intersection J2 — the central hub -->
+    <junction id="J2" x="0.0"   y="0.0" type="traffic_light"
+              tl="TL2" tlType="static" tlLayout="opposites"
+              incLanes="e_J2N_J2_0 e_J2N_J2_1 e_J2N_J2_2
+                        e_J2S_J2_0 e_J2S_J2_1 e_J2S_J2_2
+                        e_J1_J2_0  e_J1_J2_1  e_J1_J2_2
+                        e_J3_J2_0  e_J3_J2_1  e_J3_J2_2"/>
+
+    <!-- Approach nodes for J3 (Patel Chowk) -->
+    <junction id="J3_N_src"  x="-300.0" y="400.0"  type="dead_end"/>
+    <junction id="J3_S_src"  x="-300.0" y="-400.0" type="dead_end"/>
+    <junction id="J3_W_src"  x="-800.0" y="0.0"    type="dead_end"/>
+
+    <!-- Intersection J3 -->
+    <junction id="J3" x="-300.0" y="0.0" type="traffic_light"
+              tl="TL3" tlType="static" tlLayout="opposites"
+              incLanes="e_J3N_J3_0 e_J3N_J3_1 e_J3N_J3_2
+                        e_J3S_J3_0 e_J3S_J3_1 e_J3S_J3_2
+                        e_J2_J3_0  e_J2_J3_1  e_J2_J3_2
+                        e_J3W_J3_0 e_J3W_J3_1 e_J3W_J3_2"/>
+
+    <!-- ══════════════════════════════════════════════════
+         EDGES — arterial corridor (J1 ↔ J2 ↔ J3) + approaches
+    ══════════════════════════════════════════════════ -->
+
+    <!-- Main corridor -->
+    <edge id="e_J1_J2" from="J1" to="J2" type="arterial" numLanes="3" speed="13.89"
+          shape="300.0,0.0 150.0,0.0 0.0,0.0"/>
+    <edge id="e_J2_J1" from="J2" to="J1" type="arterial" numLanes="3" speed="13.89"
+          shape="0.0,0.0 150.0,0.0 300.0,0.0"/>
+
+    <edge id="e_J2_J3" from="J2" to="J3" type="arterial" numLanes="3" speed="13.89"
+          shape="0.0,0.0 -150.0,0.0 -300.0,0.0"/>
+    <edge id="e_J3_J2" from="J3" to="J2" type="arterial" numLanes="3" speed="13.89"
+          shape="-300.0,0.0 -150.0,0.0 0.0,0.0"/>
+
+    <!-- J1 approaches -->
+    <edge id="e_J1N_J1" from="J1_N_src" to="J1" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J1_J1N" from="J1"       to="J1_N_src" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J1S_J1" from="J1_S_src" to="J1" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J1_J1S" from="J1"       to="J1_S_src" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J1E_J1" from="J1_E_src" to="J1" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J1_J1E" from="J1"       to="J1_E_src" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J1W_J1" from="J1" to="J2" type="arterial" numLanes="3" speed="13.89"/> <!-- reused -->
+
+    <!-- J2 approaches -->
+    <edge id="e_J2N_J2" from="J2_N_src" to="J2" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J2_J2N" from="J2"       to="J2_N_src" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J2S_J2" from="J2_S_src" to="J2" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J2_J2S" from="J2"       to="J2_S_src" type="collector" numLanes="3" speed="8.33"/>
+
+    <!-- J3 approaches -->
+    <edge id="e_J3N_J3" from="J3_N_src" to="J3" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J3_J3N" from="J3"       to="J3_N_src" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J3S_J3" from="J3_S_src" to="J3" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J3_J3S" from="J3"       to="J3_S_src" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J3W_J3" from="J3_W_src" to="J3" type="collector" numLanes="3" speed="8.33"/>
+    <edge id="e_J3_J3W" from="J3"       to="J3_W_src" type="collector" numLanes="3" speed="8.33"/>
+
+    <!-- ══════════════════════════════════════════════════
+         TRAFFIC LIGHTS — default fixed-time phases
+         Phase 0: E-W green  (arterial corridor)  — 40 s
+         Phase 1: E-W yellow                      —  4 s
+         Phase 2: N-S green  (cross traffic)      — 30 s
+         Phase 3: N-S yellow                      —  4 s
+    ══════════════════════════════════════════════════ -->
+
+    <tlLogic id="TL1" type="static" programID="default" offset="0">
+        <phase duration="40" state="GGGrrrGGGrrr"/>
+        <phase duration="4"  state="yyyrrryyyrrr"/>
+        <phase duration="30" state="rrrGGGrrrGGG"/>
+        <phase duration="4"  state="rrryyyrrryyyy"/>
+    </tlLogic>
+
+    <tlLogic id="TL2" type="static" programID="default" offset="10">
+        <phase duration="40" state="GGGrrrGGGrrr"/>
+        <phase duration="4"  state="yyyrrryyyrrr"/>
+        <phase duration="30" state="rrrGGGrrrGGG"/>
+        <phase duration="4"  state="rrryyyrrryyyy"/>
+    </tlLogic>
+
+    <tlLogic id="TL3" type="static" programID="default" offset="20">
+        <phase duration="40" state="GGGrrrGGGrrr"/>
+        <phase duration="4"  state="yyyrrryyyrrr"/>
+        <phase duration="30" state="rrrGGGrrrGGG"/>
+        <phase duration="4"  state="rrryyyrrryyyy"/>
+    </tlLogic>
+
+</net>

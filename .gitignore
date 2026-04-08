@@ -1,0 +1,27 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+pitch/
+
+# SUMO simulation output
+sumo/output/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Binary assets (too large for git)
+assets/*.png
+assets/*.jpeg
+assets/*.jpg
+assets/poster.png
+assets/header.png
+
+# Trained models (binary)
+models/*.zip
+models/ppo_jaam_ctrl.zip

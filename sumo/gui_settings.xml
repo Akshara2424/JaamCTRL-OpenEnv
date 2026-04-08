@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<viewsettings>
+
+    <scheme name="jaam_ctrl">
+        <background backgroundColor="#000000" showGrid="0"/>
+
+        <edges laneEdgeMode="0" laneShowBorders="1" showLinkDecals="1"
+               widthExaggeration="2.0" showLaneDirection="1" laneArrowMode="1">
+            <colorScheme name="by usage">
+                <entry color="150,150,150"/>
+            </colorScheme>
+        </edges>
+
+        <vehicles vehicleMode="0" vehicleQuality="2"
+                  vehicleExaggeration="12.0" minVehicleSize="3.5"
+                  showBlinker="1">
+            <colorScheme name="given/assigned vehicle color">
+                <entry color="247,244,60"/>
+                <entry color="255,143,150"/>
+                <entry color="180,254,178"/>
+            </colorScheme>
+        </vehicles>
+
+        <junctions junctionMode="0" drawShape="1">
+            <colorScheme name="uniform">
+                <entry color="10,10,10"/>
+            </colorScheme>
+        </junctions>
+
+        <legend showSizeLegend="0" showColorLegend="0"/>
+    </scheme>
+
+    <viewport x="500" y="0" zoom="200"/>
+    <delay value="20"/>
+    <breakpoints/>
+
+</viewsettings>

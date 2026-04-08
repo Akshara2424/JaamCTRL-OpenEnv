@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+
+  <!-- VEHICLE TYPES -->
+
+  <vType id="motorcycle"
+         accel="3.0" decel="6.0" emergencyDecel="8.0"
+         length="2.2" minGap="0.8" maxSpeed="22.0"
+         sigma="0.5" tau="1.0"
+         color="247,244,60" vClass="motorcycle"
+         speedFactor="1.1" speedDev="0.2" impatience="0.7"/>
+
+  <vType id="car"
+         accel="2.2" decel="4.5" emergencyDecel="7.0"
+         length="4.5" minGap="2.0" maxSpeed="16.7"
+         sigma="0.4" tau="1.0"
+         color="255,143,150" vClass="passenger"
+         speedFactor="1.0" speedDev="0.15" impatience="0.4"/>
+
+  <vType id="auto"
+         accel="1.5" decel="4.0" emergencyDecel="6.0"
+         length="3.0" minGap="1.2" maxSpeed="13.0"
+         sigma="0.6" tau="1.1"
+         color="180,254,178" vClass="taxi"
+         speedFactor="0.95" speedDev="0.2" impatience="0.5"/>
+
+  <vType id="bus"
+         accel="1.2" decel="3.5" emergencyDecel="5.5"
+         length="12.0" minGap="3.0" maxSpeed="14.0"
+         sigma="0.2" tau="1.4"
+         color="247,244,60" vClass="bus"
+         speedFactor="0.9" speedDev="0.1" impatience="0.2"/>
+
+  <vType id="truck"
+         accel="1.0" decel="3.0" emergencyDecel="5.0"
+         length="9.0" minGap="3.5" maxSpeed="12.0"
+         sigma="0.3" tau="1.5"
+         color="255,143,150" vClass="truck"
+         speedFactor="0.85" speedDev="0.1" impatience="0.1"/>
+
+  <vType id="blocker"
+         accel="0.3" decel="8.0"
+         length="4.5" minGap="0.5" maxSpeed="0.5"
+         sigma="0.0" tau="1.0"
+         color="180,254,178" vClass="passenger"/>
+
+  <!-- ROUTES -->
+
+  <route id="r_WE"   edges="W0J0 J0J1 J1J2 J2E2"/>
+  <route id="r_J1E"  edges="J0J1 J1J2 J2E2"/>
+  <route id="r_WN1"  edges="W0J0 J0J1 J1N1"/>
+  <route id="r_WS1"  edges="W0J0 J0J1 J1S1"/>
+  <route id="r_WN2"  edges="W0J0 J0J1 J1J2 J2N2"/>
+  <route id="r_WS2"  edges="W0J0 J0J1 J1J2 J2S2"/>
+  <route id="r_N0E"  edges="N0J0 J0J1 J1J2 J2E2"/>
+  <route id="r_S0E"  edges="S0J0 J0J1 J1J2 J2E2"/>
+  <route id="r_N1E"  edges="N1J1 J1J2 J2E2"/>
+  <route id="r_S1E"  edges="S1J1 J1J2 J2E2"/>
+  <route id="r_N2E"  edges="N2J2 J2E2"/>
+  <route id="r_S2E"  edges="S2J2 J2E2"/>
+  <route id="r_N0S0" edges="N0J0 J0S0"/>
+  <route id="r_S0N0" edges="S0J0 J0N0"/>
+  <route id="r_N1S1" edges="N1J1 J1S1"/>
+  <route id="r_S1N1" edges="S1J1 J1N1"/>
+  <route id="r_N2S2" edges="N2J2 J2S2"/>
+  <route id="r_S2N2" edges="S2J2 J2N2"/>
+  <route id="r_EW"   edges="J2J1 J1J0"/>
+
+  <!-- FLOWS AND VEHICLES - sorted by begin/depart ascending -->
+
+  <!-- begin=0 -->
+  <flow id="fMC_WE_pk1"  type="motorcycle" route="r_WE"   begin="0" end="600"  period="2.5" departLane="random" departSpeed="max"/>
+  <flow id="fCar_WE_pk1" type="car"        route="r_WE"   begin="0" end="600"  period="8"   departLane="random" departSpeed="max"/>
+  <flow id="fAut_WE_pk1" type="auto"       route="r_WE"   begin="0" end="600"  period="12"  departLane="random" departSpeed="speedLimit"/>
+  <flow id="fBus_WE"     type="bus"        route="r_WE"   begin="0" end="3600" period="120" departLane="1"      departSpeed="speedLimit"/>
+  <flow id="fMC_EW"      type="motorcycle" route="r_EW"   begin="0" end="3600" period="5"   departLane="random" departSpeed="max"/>
+  <flow id="fCar_EW"     type="car"        route="r_EW"   begin="0" end="3600" period="15"  departLane="random" departSpeed="max"/>
+  <flow id="fMC_N0E_pk"  type="motorcycle" route="r_N0E"  begin="0" end="600"  period="5"   departLane="random" departSpeed="speedLimit"/>
+  <flow id="fCar_N0E"    type="car"        route="r_N0E"  begin="0" end="3600" period="18"  departLane="random" departSpeed="speedLimit"/>
+  <flow id="fMC_S0E_pk"  type="motorcycle" route="r_S0E"  begin="0" end="600"  period="5"   departLane="random" departSpeed="speedLimit"/>
+  <flow id="fCar_S0E"    type="car"        route="r_S0E"  begin="0" end="3600" period="18"  departLane="random" departSpeed="speedLimit"/>
+  <flow id="fMC_N1E_pk"  type="motorcycle" route="r_N1E"  begin="0" end="600"  period="4"   departLane="random" departSpeed="speedLimit"/>
+  <flow id="fCar_N1E"    type="car"        route="r_N1E"  begin="0" end="3600" period="15"  departLane="random" departSpeed="speedLimit"/>
+  <flow id="fAut_N1E"    type="auto"       route="r_N1E"  begin="0" end="3600" period="18"  departLane="random" departSpeed="speedLimit"/>
+  <flow id="fBus_N1E"    type="bus"        route="r_N1E"  begin="0" end="3600" period="180" departLane="1"      departSpeed="speedLimit"/>
+  <flow id="fMC_S1E_pk"  type="motorcycle" route="r_S1E"  begin="0" end="600"  period="4"   departLane="random" departSpeed="speedLimit"/>
+  <flow id="fCar_S1E"    type="car"        route="r_S1E"  begin="0" end="3600" period="15"  departLane="random" departSpeed="speedLimit"/>
+  <flow id="fMC_N2E"     type="motorcycle" route="r_N2E"  begin="0" end="3600" period="6"   departLane="random" departSpeed="speedLimit"/>
+  <flow id="fCar_N2E"    type="car"        route="r_N2E"  begin="0" end="3600" period="18"  departLane="random" departSpeed="speedLimit"/>
+  <flow id="fMC_S2E"     type="motorcycle" route="r_S2E"  begin="0" end="3600" period="6"   departLane="random" departSpeed="speedLimit"/>
+  <flow id="fCar_S2E"    type="car"        route="r_S2E"  begin="0" end="3600" period="18"  departLane="random" departSpeed="speedLimit"/>
+  <flow id="fMC_N0S0"    type="motorcycle" route="r_N0S0" begin="0" end="3600" period="12"/>
+  <flow id="fMC_S0N0"    type="motorcycle" route="r_S0N0" begin="0" end="3600" period="12"/>
+  <flow id="fMC_N1S1"    type="motorcycle" route="r_N1S1" begin="0" end="3600" period="10"/>
+  <flow id="fMC_S1N1"    type="motorcycle" route="r_S1N1" begin="0" end="3600" period="10"/>
+  <flow id="fMC_N2S2"    type="motorcycle" route="r_N2S2" begin="0" end="3600" period="12"/>
+  <flow id="fMC_S2N2"    type="motorcycle" route="r_S2N2" begin="0" end="3600" period="12"/>
+  <flow id="fMC_WS1"     type="motorcycle" route="r_WS1"  begin="0" end="3600" period="10"  departLane="random" departSpeed="max"/>
+  <flow id="fMC_WN2"     type="motorcycle" route="r_WN2"  begin="0" end="3600" period="12"  departLane="random" departSpeed="max"/>
+
+  <!-- depart=300 -->
+  <vehicle id="blocker_J1" type="blocker" route="r_J1E"
+           depart="300" departLane="0" departPos="450" departSpeed="0"
+           color="255,0,0"/>
+
+  <!-- begin=600 -->
+  <flow id="fMC_WE_sh"  type="motorcycle" route="r_WE"  begin="600" end="2400" period="4.0" departLane="random" departSpeed="max"/>
+  <flow id="fCar_WE_sh" type="car"        route="r_WE"  begin="600" end="2400" period="14"  departLane="random" departSpeed="max"/>
+  <flow id="fAut_WE_sh" type="auto"       route="r_WE"  begin="600" end="2400" period="20"  departLane="random" departSpeed="speedLimit"/>
+  <flow id="fTrk_WE"    type="truck"      route="r_WE"  begin="600" end="2400" period="90"  departLane="1"      departSpeed="speedLimit"/>
+  <flow id="fMC_N0E_sh" type="motorcycle" route="r_N0E" begin="600" end="3600" period="8"   departLane="random" departSpeed="speedLimit"/>
+  <flow id="fMC_S0E_sh" type="motorcycle" route="r_S0E" begin="600" end="3600" period="8"   departLane="random" departSpeed="speedLimit"/>
+  <flow id="fMC_N1E_sh" type="motorcycle" route="r_N1E" begin="600" end="3600" period="7"   departLane="random" departSpeed="speedLimit"/>
+  <flow id="fMC_S1E_sh" type="motorcycle" route="r_S1E" begin="600" end="3600" period="7"   departLane="random" departSpeed="speedLimit"/>
+
+  <!-- depart=600 -->
+  <vehicle id="slow_truck" type="truck" route="r_WE"
+           depart="600" departLane="1" departPos="10" departSpeed="1.0"
+           color="255,80,0"/>
+
+  <!-- depart=900 -->
+  <vehicle id="ac1" type="auto" route="r_N1E" depart="900" departLane="0" departSpeed="4.0"/>
+  <vehicle id="ac2" type="auto" route="r_N1E" depart="903" departLane="0" departSpeed="4.0"/>
+  <vehicle id="ac3" type="auto" route="r_N1E" depart="906" departLane="1" departSpeed="4.0"/>
+  <vehicle id="ac4" type="auto" route="r_N1E" depart="909" departLane="0" departSpeed="4.0"/>
+  <vehicle id="ac5" type="auto" route="r_N1E" depart="912" departLane="1" departSpeed="4.0"/>
+
+  <!-- depart=1200 -->
+  <vehicle id="mw01" type="motorcycle" route="r_WE" depart="1200" departLane="0" departSpeed="max"/>
+  <vehicle id="mw02" type="motorcycle" route="r_WE" depart="1201" departLane="1" departSpeed="max"/>
+  <vehicle id="mw03" type="motorcycle" route="r_WE" depart="1202" departLane="0" departSpeed="max"/>
+  <vehicle id="mw04" type="motorcycle" route="r_WE" depart="1203" departLane="1" departSpeed="max"/>
+  <vehicle id="mw05" type="motorcycle" route="r_WE" depart="1204" departLane="0" departSpeed="max"/>
+  <vehicle id="mw06" type="motorcycle" route="r_WE" depart="1205" departLane="1" departSpeed="max"/>
+  <vehicle id="mw07" type="motorcycle" route="r_WE" depart="1206" departLane="0" departSpeed="max"/>
+  <vehicle id="mw08" type="motorcycle" route="r_WE" depart="1207" departLane="1" departSpeed="max"/>
+  <vehicle id="mw09" type="motorcycle" route="r_WE" depart="1208" departLane="0" departSpeed="max"/>
+  <vehicle id="mw10" type="motorcycle" route="r_WE" depart="1209" departLane="1" departSpeed="max"/>
+  <vehicle id="mw11" type="motorcycle" route="r_WE" depart="1210" departLane="0" departSpeed="max"/>
+  <vehicle id="mw12" type="motorcycle" route="r_WE" depart="1211" departLane="1" departSpeed="max"/>
+  <vehicle id="mw13" type="motorcycle" route="r_WE" depart="1212" departLane="0" departSpeed="max"/>
+  <vehicle id="mw14" type="motorcycle" route="r_WE" depart="1213" departLane="1" departSpeed="max"/>
+  <vehicle id="mw15" type="motorcycle" route="r_WE" depart="1214" departLane="0" departSpeed="max"/>
+  <vehicle id="mw16" type="motorcycle" route="r_WE" depart="1215" departLane="1" departSpeed="max"/>
+  <vehicle id="mw17" type="motorcycle" route="r_WE" depart="1216" departLane="0" departSpeed="max"/>
+  <vehicle id="mw18" type="motorcycle" route="r_WE" depart="1217" departLane="1" departSpeed="max"/>
+  <vehicle id="mw19" type="motorcycle" route="r_WE" depart="1218" departLane="0" departSpeed="max"/>
+  <vehicle id="mw20" type="motorcycle" route="r_WE" depart="1219" departLane="1" departSpeed="max"/>
+
+  <!-- begin=2400 -->
+  <flow id="fMC_WE_pk2"  type="motorcycle" route="r_WE" begin="2400" end="3600" period="2.5" departLane="random" departSpeed="max"/>
+  <flow id="fCar_WE_pk2" type="car"        route="r_WE" begin="2400" end="3600" period="8"   departLane="random" departSpeed="max"/>
+  <flow id="fAut_WE_pk2" type="auto"       route="r_WE" begin="2400" end="3600" period="12"  departLane="random" departSpeed="speedLimit"/>
+
+  <!-- depart=2500 -->
+  <vehicle id="blocker_J2" type="blocker" route="r_N2E"
+           depart="2500" departLane="0" departPos="5" departSpeed="0"
+           color="255,0,128"/>
+
+</routes>

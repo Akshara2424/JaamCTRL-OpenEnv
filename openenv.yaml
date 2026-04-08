@@ -1,0 +1,460 @@
+# openenv.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+# JaamCTRL — AI Adaptive Traffic Signal Control
+# OpenEnv Environment Specification v1.0
+#
+# Meta PyTorch OpenEnv Hackathon x Scaler School of Technology 2026
+# Track: Open Innovation
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Identity ──────────────────────────────────────────────────────────────────
+name: jaamctrl-traffic
+version: "1.0.0"
+display_name: "JaamCTRL — AI Adaptive Traffic Signal Control"
+
+description: >
+  A simulation-based reinforcement learning environment for adaptive traffic
+  signal control on Indian urban arterial roads. Three signalized intersections
+  (Barakhamba Road, CP Core, Patel Chowk — New Delhi) are modelled using SUMO
+  with heterogeneous Indian traffic: motorcycles, autos (tuk-tuks), passenger
+  cars, and buses. A PPO agent learns to coordinate green phases across all
+  three signals simultaneously, reducing average vehicle delay and queue length
+  compared to a fixed-time baseline. The environment features realistic chaos:
+  random animal crossings, mid-episode accidents, GPS probe noise, and rush-hour
+  demand spikes — making it a strong benchmark for robust multi-intersection
+  traffic signal control under uncertainty.
+
+tags:
+  - reinforcement-learning
+  - traffic-signal-control
+  - urban-mobility
+  - multi-agent
+  - india
+  - sumo
+  - ppo
+  - gymnasium
+
+license: MIT
+authors:
+  - name: "JaamCTRL Team"
+
+repository: "https://github.com/your-org/jaamctrl"
+huggingface_space: "https://huggingface.co/spaces/WitchedWick/jaamctrl"
+
+# ── Runtime ───────────────────────────────────────────────────────────────────
+runtime:
+  language: python
+  python_version: "3.11"
+  entry_point: "env.base_env:JaamCTRLTrafficEnv"
+  inference_script: "inference.py"
+
+  dependencies:
+    system:
+      - name: sumo
+        version: ">=1.19.0"
+        install: "sudo apt-get install -y sumo sumo-tools"
+        env_var: "SUMO_HOME=/usr/share/sumo"
+      - name: sumo-gui
+        optional: true
+        note: "Only needed for visual rendering; not required in headless/Docker mode"
+    python:
+      - gymnasium>=0.29.0
+      - numpy>=1.24.0
+      - stable-baselines3>=2.2.0
+      - torch>=2.1.0
+      - traci>=1.19.0
+      - streamlit>=1.32.0
+      - folium>=0.15.0
+      - streamlit-folium>=0.18.0
+      - pandas>=2.0.0
+
+  docker:
+    image: "ghcr.io/your-org/jaamctrl:latest"
+    dockerfile: "Dockerfile"
+    build_command: "docker build -t jaamctrl ."
+    run_command: "docker run -p 8501:8501 jaamctrl"
+    ports:
+      - 8501   # Streamlit dashboard
+    environment:
+      - SUMO_HOME=/usr/share/sumo
+      - MOCK_SUMO=0
+
+# ── Environment API ───────────────────────────────────────────────────────────
+api:
+  style: gymnasium          # step() / reset() / state() / close()
+  spec_version: "0.1"       # OpenEnv RFC 002
+
+  reset:
+    signature: "reset(seed=None, options=None) -> (obs, info)"
+    options:
+      task_id:
+        type: int
+        values: [1, 2, 3]
+        description: "Switch difficulty task on reset without recreating env"
+      difficulty:
+        type: int
+        values: [1, 2, 3]
+        description: "Alias for task_id"
+
+  step:
+    signature: "step(action) -> (obs, reward, terminated, truncated, info)"
+    decision_interval_s: 5
+    note: >
+      Yellow transitions (3 s) are injected automatically between green phases.
+      Minimum green time of 10 s is enforced; premature switches count as thrash
+      events and incur a small penalty.
+
+  state:
+    signature: "state() -> dict"
+    description: >
+      Returns a fully JSON-serialisable snapshot used by the OpenEnv grader
+      to extract episode metrics. Includes current_phases, active_incidents,
+      episode_throughput, delay_sum, overflow_events, and success_thresholds.
+
+  close:
+    signature: "close() -> None"
+    description: "Terminates the SUMO subprocess and closes the TraCI connection."
+
+# ── Observation space ─────────────────────────────────────────────────────────
+observation_space:
+  type: Dict
+  flat_key: flat
+  flat_dim: 46
+  dtype: float32
+
+  description: >
+    All tasks share the same 46-dimensional flat observation vector.
+    Slots belonging to inactive intersections are zero-padded so a single
+    PPO policy architecture works across all three difficulty levels.
+
+  components:
+    queue_lengths:
+      shape: [3, 4]
+      dtype: float32
+      range: [0, 50]
+      description: "Halting vehicles per lane. 3 intersections × 4 approach lanes."
+      flat_indices: "0:12"
+
+    current_phase:
+      shape: [3]
+      dtype: int64
+      range: [0, 3]
+      description: "Active phase index per TL. 0=NS_green, 1=NS_yellow, 2=EW_green, 3=EW_yellow."
+      flat_indices: "12:15"
+
+    phase_elapsed:
+      shape: [3]
+      dtype: float32
+      range: [0, 120]
+      unit: seconds
+      description: "Seconds the current phase has been active at each intersection."
+      flat_indices: "15:18"
+
+    probe_density:
+      shape: [3, 8]
+      dtype: float32
+      range: [0, 1]
+      description: >
+        Normalised GPS probe vehicle density in 8 angular spatial cells (45° each)
+        around each intersection. Task 3 adds Gaussian noise σ=0.05 to simulate
+        sparse real-world probe feeds.
+      flat_indices: "18:42"
+
+    incident_flag:
+      shape: [3]
+      dtype: int8
+      range: [0, 1]
+      description: "Binary flag: 1 if an active incident (accident/animal/pedestrian) at that TL."
+      flat_indices: "42:45"
+
+    time_of_day_norm:
+      shape: [1]
+      dtype: float32
+      range: [0, 1]
+      description: >
+        Episode progress normalised to [0,1]. Value 0.375 = rush-hour spike
+        onset in Task 3 (step 300 of 800). Agent should treat this as a
+        predictive signal for demand changes.
+      flat_indices: "45:46"
+
+# ── Action space ──────────────────────────────────────────────────────────────
+action_space:
+  type: MultiDiscrete
+  description: "Phase index (0–3) for each active traffic light, applied simultaneously."
+
+  per_task:
+    task_1:
+      shape: [4]
+      description: "Single TL — 4 phase choices"
+    task_2:
+      shape: [4, 4]
+      description: "Two TLs — independent 4-phase choices per signal"
+    task_3:
+      shape: [4, 4, 4]
+      description: "Three TLs — full corridor coordinated control"
+
+  phase_encoding:
+    0: "NS_GREEN  — North-South green, East-West red"
+    1: "NS_YELLOW — 3-second transition (auto-enforced; not learnable)"
+    2: "EW_GREEN  — East-West green, North-South red"
+    3: "EW_YELLOW — 3-second transition (auto-enforced; not learnable)"
+
+  constraints:
+    min_green_s: 10
+    yellow_duration_s: 3
+    note: >
+      Yellow phases are automatically injected between green-to-green switches.
+      Actions requesting a phase switch before min_green_s has elapsed are
+      silently ignored (phase is held) and counted as thrash events.
+
+# ── Reward function ───────────────────────────────────────────────────────────
+reward:
+  range: [-10.0, 5.0]
+  clip: true
+  decision_frequency: "every 5 simulation seconds"
+
+  description: >
+    A unified reward function runs across all three tasks. Difficulty is
+    controlled entirely by coefficient values — inactive terms have coefficient 0.
+
+  terms:
+    r_queue:
+      coefficient: -0.01
+      formula: "-0.01 × Σ(queue_lengths[:n_tl])"
+      active_tasks: [1, 2, 3]
+      description: "Penalise total halting vehicles at all active intersections."
+
+    r_throughput:
+      coefficient: +0.05
+      formula: "+0.05 × Σ(throughput[:n_tl])"
+      active_tasks: [1, 2, 3]
+      description: "Reward vehicles exiting intersections this decision step."
+
+    r_stops:
+      coefficient: -0.02
+      formula: "-0.02 × Σ(new_stops[:n_tl])"
+      active_tasks: [1, 2, 3]
+      description: "Penalise new stop events (vehicles decelerating to < 0.1 m/s)."
+
+    r_long_wait:
+      coefficients: {task_1: 0.0, task_2: -0.50, task_3: -2.00}
+      formula: "coeff × long_wait_count"
+      thresholds: {task_2: 60, task_3: 90}
+      active_tasks: [2, 3]
+      description: "Hard penalty per vehicle waiting beyond the task-specific threshold."
+
+    r_green_wave:
+      coefficients: {task_1: 0.0, task_2: +0.10, task_3: +0.15}
+      formula: "coeff × green_wave_hits"
+      active_tasks: [2, 3]
+      description: >
+        Bonus when a downstream signal is already green when an upstream platoon
+        arrives. Platoon travel time INT-1→INT-2 ≈ 13 s at 23 km/h.
+
+    r_overflow:
+      coefficients: {task_1: 0.0, task_2: 0.0, task_3: -3.00}
+      formula: "-3.0 × overflow_lanes"
+      active_tasks: [3]
+      description: "Hard penalty per lane where queue exceeds physical capacity (20 veh)."
+
+    r_incident:
+      coefficients: {task_1: 0.0, task_2: 0.0, task_3: +2.00}
+      formula: "+2.0 × incident_cleared (one-time per event)"
+      active_tasks: [3]
+      description: "One-time bonus when the queue behind an incident drops below 5 vehicles."
+
+    r_thrash:
+      coefficient: -0.05
+      formula: "-0.05 × thrash_count"
+      active_tasks: [1, 2, 3]
+      description: "Penalise phase switches before minimum green time has elapsed."
+
+  rush_hour_multiplier:
+    value: 1.5
+    applies_to: [r_queue, r_throughput]
+    active_tasks: [3]
+    window: "episode steps 300–400 (rush-hour demand spike ×1.8)"
+
+# ── Tasks ─────────────────────────────────────────────────────────────────────
+tasks:
+
+  - id: 1
+    name: "Easy — Single Intersection (Barakhamba Road)"
+    env_id: "JaamCTRL-Easy-v0"
+    difficulty: easy
+
+    description: >
+      Control one 4-way intersection with homogeneous car-only traffic at 400
+      veh/hr. No incidents, no probe noise, no coordination required. Designed
+      for fast convergence (~1000 PPO steps) and serves as the correctness
+      check that the RL loop works end-to-end.
+
+    intersections: 1
+    tl_ids: ["INT_1"]
+    vehicle_mix: {passenger: 1.0}
+    demand_veh_per_hr: 400
+    incidents: none
+    probe_noise_sigma: 0.0
+    obs_dim: 46       # zero-padded; INT_2 and INT_3 slots = 0
+    action_space: "MultiDiscrete([4])"
+    max_steps: 300
+    episode_duration_sim_min: 25.0
+    ppo_training_steps: 1000
+
+    grader:
+      type: metric_threshold
+      thresholds:
+        delay_reduction_pct:
+          min: 15.0
+          description: "≥15% reduction in avg vehicle delay vs fixed-time baseline"
+
+  - id: 2
+    name: "Medium — Two Intersections (Barakhamba + CP Core)"
+    env_id: "JaamCTRL-Medium-v0"
+    difficulty: medium
+
+    description: >
+      Control two adjacent intersections on a 300 m linear corridor.
+      Heterogeneous traffic: 60% motorcycles, 20% autos, 20% cars at 600 veh/hr.
+      Stochastic pedestrian crossings (Poisson λ=0.02/step) interrupt phase flow.
+      Green-wave bonus activates: agent must learn to offset INT-2 signal by
+      ~13 s after INT-1 to catch the outgoing platoon.
+
+    intersections: 2
+    tl_ids: ["INT_1", "INT_2"]
+    vehicle_mix: {passenger: 0.20, motorcycle: 0.60, tuk_tuk: 0.20}
+    demand_veh_per_hr: 600
+    incidents:
+      - type: pedestrian
+        distribution: poisson
+        lambda_per_step: 0.02
+    probe_noise_sigma: 0.0
+    long_wait_threshold_s: 60
+    platoon_travel_time_s: 13
+    obs_dim: 46       # zero-padded; INT_3 slot = 0
+    action_space: "MultiDiscrete([4, 4])"
+    max_steps: 500
+    episode_duration_sim_min: 41.7
+    ppo_training_steps: 2500
+
+    grader:
+      type: metric_threshold
+      thresholds:
+        delay_reduction_pct:
+          min: 20.0
+          description: "≥20% reduction in avg vehicle delay"
+        stop_reduction_pct:
+          min: 15.0
+          description: "≥15% reduction in total stop events"
+
+  - id: 3
+    name: "Hard — Full Corridor (Barakhamba → CP Core → Patel Chowk)"
+    env_id: "JaamCTRL-Hard-v0"
+    difficulty: hard
+
+    description: >
+      Control all three intersections simultaneously. Full Indian traffic chaos:
+      55% motorcycles, 25% cars, 12% autos, 8% buses at 900 veh/hr base demand.
+      A rush-hour spike (×1.8 demand) hits at step 300 for 100 steps. A lane-
+      blocking accident occurs at INT-2 at step 400 for 50 steps. An animal
+      crossing happens at INT-3 at step 200 for 10 steps. GPS probe observations
+      include Gaussian noise (σ=0.05). The agent must coordinate green waves
+      across all three signals while preventing queue overflow and adapting
+      reactively to incidents.
+
+    intersections: 3
+    tl_ids: ["INT_1", "INT_2", "INT_3"]
+    vehicle_mix: {passenger: 0.25, motorcycle: 0.55, tuk_tuk: 0.12, bus: 0.08}
+    demand_veh_per_hr: 900
+    rush_hour:
+      start_step: 300
+      end_step: 400
+      demand_multiplier: 1.8
+      reward_multiplier: 1.5
+    incidents:
+      - type: accident
+        tl_index: 1
+        start_step: 400
+        duration_steps: 50
+        lane_speed_cap_mps: 2.0
+      - type: animal_crossing
+        tl_index: 2
+        start_step: 200
+        duration_steps: 10
+        lane_speed_cap_mps: 5.0
+    probe_noise_sigma: 0.05
+    long_wait_threshold_s: 90
+    overflow_lane_capacity: 20
+    obs_dim: 46       # full — all slots used
+    action_space: "MultiDiscrete([4, 4, 4])"
+    max_steps: 800
+    episode_duration_sim_min: 66.7
+    ppo_training_steps: 5000
+
+    grader:
+      type: metric_threshold
+      thresholds:
+        delay_reduction_pct:
+          min: 25.0
+          description: "≥25% reduction in avg vehicle delay"
+        throughput_improvement_pct:
+          min: 20.0
+          description: "≥20% improvement in total vehicle throughput"
+        overflow_events:
+          max: 0
+          description: "Zero queue overflow events across the episode"
+
+# ── Baselines ─────────────────────────────────────────────────────────────────
+baselines:
+  fixed_time:
+    description: "Alternating 30 s NS / 30 s EW green, no adaptation"
+    controller: "agents/rule_based.py (fixed_time mode)"
+
+  rule_based_adaptive:
+    description: >
+      Heuristic: extend green if current-direction queue > 8 vehicles AND
+      elapsed > 10 s; switch otherwise. No coordination between intersections.
+    controller: "agents/rule_based.py"
+
+  ppo_trained:
+    description: "PPO agent trained with stable-baselines3 on each task."
+    model_paths:
+      task_1: "agents/models/ppo_task1.zip"
+      task_2: "agents/models/ppo_task2.zip"
+      task_3: "agents/models/ppo_jaamctrl.zip"
+
+# ── Deployment ────────────────────────────────────────────────────────────────
+deployment:
+  huggingface_spaces:
+    sdk: docker
+    app_port: 8501
+    startup_command: "streamlit run app.py --server.port 8501 --server.address 0.0.0.0"
+    inference_command: "python inference.py --mock"
+    note: >
+      Set MOCK_SUMO=1 on HF Spaces if SUMO cannot be installed.
+      All reward/obs/incident logic runs identically in mock mode;
+      only the TraCI calls are replaced with synthetic random data.
+
+  docker:
+    base_image: "ubuntu:22.04"
+    sumo_install: "apt-get install -y sumo sumo-tools"
+    exposed_ports: [8501]
+
+# ── Evaluation grader config ──────────────────────────────────────────────────
+grader:
+  script:        "inference.py"
+  log_format:    "stdout"
+  parse_tags:    ["[START]", "[STEP]", "[END]"]
+  result_file:   "logs/results.json"
+
+  scoring:
+    method: "weighted_task_success"
+    weights:
+      task_1: 0.20
+      task_2: 0.35
+      task_3: 0.45
+    note: >
+      Each task is pass/fail against its thresholds.
+      The weighted sum of pass/fail scores the submission.
+      Partial credit is awarded pro-rata on delay_reduction_pct
+      if the threshold is missed by < 5 percentage points.

@@ -1,0 +1,31 @@
+name: Sync to Hugging Face Spaces
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git
+        run: |
+          git config --global user.email "sync-bot@github.com"
+          git config --global user.name "Sync Bot"
+
+      - name: Add HF remote and push
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git remote add hf https://WitchedWick:${HF_TOKEN}@huggingface.co/spaces/WitchedWick/JaamCTRL-OpenEnv.git
+          git push hf main --force 2>&1 || true
+        shell: bash
