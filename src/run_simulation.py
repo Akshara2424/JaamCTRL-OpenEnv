@@ -103,7 +103,8 @@ def _generate_gps_df(n_vehicles, congestion_factor, accident_junc, rng):
     per_seg = max(1, n_vehicles // len(_ROAD_SEGMENTS))
 
     for lat1, lon1, lat2, lon2, junc in _ROAD_SEGMENTS:
-        cf = float(np.clip(congestion_factor + rng.uniform(-0.12, 0.12), 0, 1))
+        # Minimal noise so differences between control strategies are visible
+        cf = float(np.clip(congestion_factor + rng.uniform(-0.03, 0.03), 0, 1))
         if accident_junc and junc == accident_junc:
             cf = min(cf + 0.4, 1.0)
 
