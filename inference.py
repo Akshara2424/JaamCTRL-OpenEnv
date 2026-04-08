@@ -71,6 +71,11 @@ LOG_VERSION     = "1.0"
 ENV_NAME        = "jaamctrl-traffic"
 TEAM_NAME       = os.getenv("TEAM_NAME", "JaamCTRL")
 
+# LLM API configuration (OpenAI-compatible client)
+API_BASE_URL    = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
+MODEL_NAME      = os.getenv("MODEL_NAME", "gpt-4")
+HF_TOKEN        = os.getenv("HF_TOKEN")  # Optional; no default
+
 # Per-task model paths — fall back to shared model if task-specific not found
 MODEL_PATHS = {
     1: os.getenv("MODEL_PATH_1", str(ROOT / "models/ppo_task1.zip")),
